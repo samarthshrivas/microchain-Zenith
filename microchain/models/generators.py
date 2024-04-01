@@ -84,3 +84,45 @@ class OpenAITextGenerator:
 
         return output
     
+
+
+class LLamacppTextGenerator:
+    def __init__(self, *, model_path, temperature=0.9, top_p=1, max_tokens=512, n_threads=2, n_gpu_layers=-1, verbose = False):
+        try:
+            from llama_cpp import Llama
+        except ImportError:
+            raise ImportError("Please install llamacpp python library")
+    
+        self.model_path = model_path
+        self.temperature = temperature
+        self.top_p = top_p
+        self.ngl =  n_gpu_layers
+        self.n_threads = n_threads
+        self.max_tokens = max_tokens
+        self.verbose = verbose
+
+        self.llm = Llama(model_path=model_path, n_threads=2, n_gpu_layers=-1 , verbose=verbose, n_ctx=max_tokens)
+
+    
+    def __call__(self, prompt, stop=[]):
+        
+        assert isinstance(prompt, str), "prompt must be a string https://platform.openai.com/docs/guides/text-generation/chat-completions-api"
+
+        try:
+            response = self.llm(
+                
+                prompt=prompt,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                stop=stop
+            )
+        except Exception as e:
+            print(colored(f"Error: {e}", "red"))
+            return "Error: timeout"
+        
+        output = response['choices'][0]['text'].strip()
+
+        return output
+    
+
